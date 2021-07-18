@@ -1,16 +1,33 @@
+const W = 801;
+const H = 801;
+const cell_size=66;
+var game_over = false;
+var score = 2;
+var myCanvas = document.getElementById('myCanvas');
+myCanvas.width = W;
+myCanvas.height = H;
+pen = myCanvas.getContext('2d');
+
+function Food(){
+    var fx = Math.round(Math.random()*(W-cell_size)/cell_size);
+    var fy = Math.round(Math.random()*(H-cell_size)/cell_size);
+    var food_img = new Image();
+    food_img.src = "Assets/apple.png";
+    var food = {
+        x:fx,
+        y:fy,
+        img:food_img
+    }
+    return food;
+}
+
+
+
+var food = Food();
+
 function init(){
-    W = 667;
-    H = 667;
-    cell_size=66;
-    var myCanvas = document.getElementById('myCanvas');
-    myCanvas.width = W;
-    myCanvas.height = H;
-    pen = myCanvas.getContext('2d');
-
-
-
     snake = {
-        init_len:5,
+        init_len:1,
         color:"red",
         cells:[],
         direction:"right",
@@ -30,9 +47,17 @@ function init(){
         },
 
         updateSnake:function(){
-            this.cells.pop();
             var headx = this.cells[0].x;
             var heady = this.cells[0].y;
+
+            if(headx == food.x && heady == food.y){
+                score+=1;
+                food = Food();
+            }
+            else{
+                this.cells.pop();
+            }
+            
             var X = headx
             var Y=heady;
 
@@ -49,7 +74,15 @@ function init(){
                 Y++;
             }
             this.cells.unshift({x:X,y:Y});
+
+            var lastx = Math.round(W/cell_size);
+            var lasty = Math.round(H/cell_size);
+
+            if(headx<0 || heady<0 || headx>lastx || heady>lasty){
+                game_over=true;
+            }
         }
+
     }
     snake.createSnake();
     function keyPressed(e){
@@ -79,7 +112,14 @@ function init(){
 function draw(){
     pen.clearRect(0,0,W,H);
     snake.drawSnake();
-    
+
+    pen.fillStyle = food.color;
+    pen.drawImage(food.img,food.x*cell_size,food.y*cell_size,cell_size,cell_size);
+
+    pen.fillStyle="blue";
+    pen.font = "20px Roboto";
+    pen.fillText("Your Score is : "+score,50,50);
+
 }
 
 function update(){
@@ -88,8 +128,12 @@ function update(){
 
 init();
 function gameLoop(){
+    if(game_over == true){
+        clearInterval(f);
+        alert("game over");
+    }
     draw();
     update();
 }
 
-setInterval(gameLoop,500);
+var f = setInterval(gameLoop,200);
